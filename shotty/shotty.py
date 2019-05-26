@@ -27,7 +27,9 @@ def snapshots():
 @snapshots.command('list')  # para leer script como comando con argumentos
 @click.option('--project', default=None,
     help="Only snapshots for project (tag Project:<name>)")
-def list_snapshots(project):
+@click.option('--all','list_all', default=False, is_flag=True, 
+    help="List all snapshots for each volume, not just the most recent")
+def list_snapshots(project, list_all):
     "List EC2 snapshots" # se añade al --help
     
     instances = filter_instances(project)
@@ -43,6 +45,10 @@ def list_snapshots(project):
                     s.progress,
                     s.start_time.strftime("%c")
                 )))
+
+                if s.state == 'completed' and not list_all:break # cuando encuentra el primer snapshot de un volumen concreto ya completado, no busca otros. 
+                # Esto hace que solo se muestre el más reciente, que es el que nos interesa.
+                #Salvo que se use la opción --all, por lo que list_all == True y se muestran los antiguos también
 
     return
 
